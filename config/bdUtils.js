@@ -3,73 +3,75 @@ const logger = require("./loggerUtil");
 const enviroment = require("./enviroments");
 const dbConfigCo = enviroment.bdConfigCo;
 const dbConfigVe = enviroment.bdConfigVe;
+const sqlConstant = require("../config/sqlConstant");
+const SQL = sqlConstant.SQL;
 oracledb.initOracleClient({ libDir: "C:\\libOraclebd" });
 //oracledb.initOracleClient({ libDir: "./instantclient" });
 
-const execute2 = async function () {
+const executeTest2 = async function () {
   logger.info("**###execute2###**");
-  let conn;
-
-  try {
-    logger.info("**getConnection**");
-    conn = await oracledb.getConnection(dbConfigVe);
-    logger.info("**conecto**");
-    const result = await conn.execute("SELECT * FROM INVOICE_HEAD");
-    logger.info("**ejecutada**");
-    logger.info("Result" + JSON.stringify(result.rows[0]));
-    return JSON.stringify(result.rows[0]);
-  } catch (err) {
-    console.log("Ouch!", err);
-  } finally {
-    if (conn) {
-      // conn assignment worked, need to close
-      await conn.close();
-    }
-  }
-};
-
-const execute = async function () {
-  logger.info("**execute**");
   let connection;
 
   try {
     let sql, binds, options, result;
+    logger.info("**getConnection**");
     connection = await oracledb.getConnection(dbConfigVe);
-    logger.info("**connection**");
-
-    sql = `SELECT * FROM INVOICE_HEAD WHERE ORDER_NO = :id AND INVOICE_NO = :supp`;
-
-    binds = { id: 17625213, supp: "002759-2695" };
-
-    // For a complete list of options see the documentation.
-    options = {
-      outFormat: oracledb.OUT_FORMAT_OBJECT, // query result format
-      // extendedMetaData: true,               // get extra metadata
-      // prefetchRows:     100,                // internal buffer allocation size for tuning
-      // fetchArraySize:   100                 // internal buffer allocation size for tuning
-    };
-    logger.info("**execute**");
-    result = await connection.execute(sql, binds, options);
-    logger.info("**result**");
+    logger.info("**conecto**");
+    sql = "SELECT * FROM INVOICE_DETAIL";
+    result = await connection.execute(sql);
+    logger.info("**ejecutada**");
     //console.log("Metadata: ");
     //console.dir(result.metaData, { depth: null });
-    console.log("Query results: ");
-    console.log(JSON.stringify(result.rows));
-    //console.dir(result.rows, { depth: null });
+    logger.info("Result" + JSON.stringify(result.rows[0]));
+    return JSON.stringify(result.rows[0]);
   } catch (err) {
-    console.error(err);
+    logger.error(err);
   } finally {
     if (connection) {
       try {
         await connection.close();
       } catch (err) {
-        console.error(err);
+        logger.error(err);
       }
     }
   }
 };
 
-const insert = async function () {
+const executeTest = async function () {
+  logger.info("**execute**");
+  let connection;
+
+  try {
+    let sql, binds, options, result;
+    logger.info("**getConnection**");
+    connection = await oracledb.getConnection(dbConfigVe);
+    logger.info("**conecto**");
+
+    slq = "SELECT * FROM INVOICE_HEAD";
+    /*sql = `SELECT * FROM INVOICE_HEAD WHERE ORDER_NO = :id AND INVOICE_NO = :supp`;
+    binds = { id: 17625213, supp: "002759-2695" };*/
+    options = {
+      outFormat: oracledb.OUT_FORMAT_OBJECT // query result format
+    };
+    logger.info("**execute**");
+    result = await connection.execute(sql, binds, options);
+    logger.info("**result**");
+    logger.info("Query results: ");
+    logger.info(JSON.stringify(result.rows[0]));
+  } catch (err) {
+    logger.error(err);
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        logger.error(err);
+      }
+    }
+  }
+};
+
+const insertPrueba = async function () {
   logger.info("**insert**");
   let connection;
 
@@ -79,46 +81,139 @@ const insert = async function () {
     logger.info("**connection**");
 
     sql = `INSERT INTO "INVOICEVE"."INVOICE_HEAD" 
-           (COUNTRY, ORDER_NO, INVOICE_NO, SUPPLIER, SUPPLIER_NAME, VENDOR_TYPE, STORE, LOCATION_TYPE, ORDER_DATE, RECEIVE_DATE) 
-    VALUES ('VE', 5678, '87654', 213, 'PRUEBA', 'SUPP', 2900, 'W', TO_DATE('2020-09-13 15:28:39', 'YYYY-MM-DD HH24:MI:SS'), NULL)`;
+           (COUNTRY,ORDER_NO,INVOICE_NO,SUPPLIER,SUPPLIER_NAME,VENDOR_TYPE,STORE,LOCATION_TYPE,ORDER_DATE,RECEIVE_DATE,STATUS,TERMS,TOTAL_COST_ORDERED,TOTAL_COST_RECEIVED,TOTAL_COST_DISCOUNT,CURRENCY_CODE,APPT_NO,CLAIM_DETAIL,EXCHANGE_RATE,APPOINTMENT_DATE,DOC_TYPE,REF_VENDOR,PROCESSING_STATUS,DOC_ID,SRC_SYSTEM,PROCESSING_ERROR_DESC,QTY_DECISION,COST_DECISION,SERIE,BILL_NUMBER,CONTROL,TOTAL_QTY,DOC_DATE,DUE_DATE,TOTAL_TAX_AMOUNT,TERMS_DSCNT_PCT,TOTAL_COST_INC_TAX,DOC_TAX_DESC,CREATE_USER,CREATE_DATE,NOTE_CREDIT_NO,CONSIGNMENT,INVOICE_TYPE) 
+    VALUES ('VE', 5678991, '87654', 213, 'PRUEBAx', 'SUPP', 2900, 'W', TO_DATE('2020-09-13 15:28:39', 'YYYY-MM-DD HH24:MI:SS'), NULL)`;
 
-    //binds = { id: 17625213, supp: "002759-2695" };
 
-    // For a complete list of options see the documentation.
+    binds = [];
+
     options = {
-      autoCommit: true,
-      bindDefs: [
-        { type: oracledb.NUMBER },
-        { type: oracledb.STRING, maxSize: 300 }
-      ]
-      //outFormat: oracledb.OUT_FORMAT_OBJECT, // query result format
-      // extendedMetaData: true,               // get extra metadata
-      // prefetchRows:     100,                // internal buffer allocation size for tuning
-      // fetchArraySize:   100                 // internal buffer allocation size for tuning
+      autoCommit: true
     };
     logger.info("**execute**");
-    result = await connection.executeMany(sql, options);
+    result = await connection.execute(sql, binds, options);
     logger.info("**result**");
-    //console.log("Metadata: ");
-    //console.dir(result.metaData, { depth: null });
-    console.log("Query results: ");
-    console.log(JSON.stringify(result));
-    //console.dir(result.rows, { depth: null });
+    logger.info("Query results: ");
+    logger.info(JSON.stringify(result));
   } catch (err) {
-    console.error(err);
+    logger.error(err);
   } finally {
     if (connection) {
       try {
         await connection.close();
       } catch (err) {
-        console.error(err);
+        logger.error(err);
+      }
+    }
+  }
+};
+
+const insert = async function (sql, data) {
+  logger.info("**insert**");
+  //console.log((data));
+  let connection;
+
+  try {
+    let options, result;
+    connection = await oracledb.getConnection(dbConfigVe);
+
+    logger.info("**connection**");
+    options = {
+      autoCommit: true
+    };
+    logger.info("**execute**");
+    result = await connection.execute(sql, data, options);
+    logger.info("**result**");
+    logger.info("Query results: ");
+    logger.info(JSON.stringify(result));
+    return true;
+  } catch (err) {
+    logger.error(err);
+    return false;
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        logger.error(err);
+      }
+    }
+  }
+};
+
+const insertInvoice = async function (data) {
+  logger.info("**insertInvoice**");
+  //console.log((data));
+  let connection;
+
+  try {
+    let options, result, dbConfig;
+    logger.info("**connection**");
+    dbConfig = data.country == "CO" ? dbConfigCo : dbConfigVe;
+    connection = await oracledb.getConnection(dbConfig);
+    logger.info("**execute head**");
+    await connection.execute(SQL.INSERT_INVOICE_HEAD, data.head);
+    logger.info("**execute detail**");
+    for await (const detalle of data.det) {
+      await connection.execute(SQL.INSERT_INVOICE_DETAIL, detalle);
+    }
+    logger.info("**commit**");
+    await connection.commit();
+    logger.info("**result**");
+    logger.info(JSON.stringify(result));
+    return true;
+  } catch (err) {
+    logger.error(err);
+    throw new Error(err.message)
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        logger.error(err);
+      }
+    }
+  }
+};
+
+const search = async function (sql, data) {
+  logger.info("**search**");
+  //console.log((data));
+  let connection;
+
+  try {
+    let options, result, dbConfig;
+    logger.info("**connection**");
+    dbConfig = data.country == "CO" ? dbConfigCo : dbConfigVe;
+    connection = await oracledb.getConnection(dbConfig);
+    options = {
+      outFormat: oracledb.OUT_FORMAT_OBJECT // query result format
+    };
+    logger.info("sql:" + sql);
+    logger.info("**execute SQL**");
+    result = await connection.execute(sql, data.binds, options);
+    logger.info("**result**");
+    logger.info(JSON.stringify(result));
+    return result;
+  } catch (err) {
+    logger.error(err);
+    throw new Error(err.message)
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        logger.error(err);
       }
     }
   }
 };
 
 module.exports = {
-  execute,
-  execute2,
+  executeTest,
+  executeTest2,
   insert,
+  insertInvoice,
+  insertPrueba,
+  search
 };

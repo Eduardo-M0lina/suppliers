@@ -2,12 +2,13 @@ const filesStructure = require("../config/filesStructure");
 const fStructure = filesStructure.FILE_STRUCTURE;
 const enviroment = require("../config/enviroments");
 const logger = require("../config/loggerUtil");
-const readline = require("readline");
-const fs = require("fs");
+const bdUtils = require("../config//bdUtils");
+const sqlConstant = require("../config/sqlConstant");
+const SQL = sqlConstant.SQL;
 
 const config = enviroment.configFtp;
 
-const processFile = async function (File) {
+const processFile = async function (File, country) {
   logger.info("**readFile**");
   //logger.info("File:"+JSON.stringify(File));
   var res = new Object();
@@ -49,6 +50,9 @@ const processFile = async function (File) {
       }
     }
     //let finalArray = await buildBillFile(arrayLines);
+    //consultar Código de Proveedor Padre
+    let supplierFather = await searchSupplierFather(resBuildFile.codProveedor, country);
+    resBuildFile.codProveedor = supplierFather;
     //escribir en directorio FTP
     let resFtp = await writeFileFtp(resBuildFile);
     if (resFtp) {
@@ -142,6 +146,7 @@ async function buildBillFile(arrayLines) {
   let exentoProduc = "";
   let noOrdenCompra = "";
   let razonSocial = "";
+  let codProveedor = "";
   var m = new Date();
   var dateGen =
     m.getDate() +
@@ -170,6 +175,8 @@ async function buildBillFile(arrayLines) {
       head2 = "";
       noOrdenCompra = values[fStructure["TradePlacePos"]["head"]["head_numAsoci"]["pos"] - 1];
       razonSocial = values[fStructure["TradePlacePos"]["head"]["head_nomRaz"]["pos"] - 1];
+      codProveedor = values[fStructure["TradePlacePos"]["head"]["head_codProv"]["pos"] - 1];
+      //console.log("codProveedor:" + codProveedor)
       //contruir datos cabecera
       head = head.concat(noOrdenCompra).concat("|"); //1
       head = head.concat(values[fStructure["TradePlacePos"]["head"]["head_numSerie"]["pos"] - 1]).concat("|"); //2
@@ -225,9 +232,10 @@ async function buildBillFile(arrayLines) {
   var resBuildFile = new Object();
   resBuildFile.noOrdenCompra = noOrdenCompra;
   resBuildFile.razonSocial = razonSocial;
+  resBuildFile.codProveedor = codProveedor;
   resBuildFile.dateGen = dateGen;
   resBuildFile.finalArray = finalArray;
-  logger.info("resBuildFile.finalArray:" + resBuildFile.finalArray);
+  //logger.info("resBuildFile.finalArray:" + resBuildFile.finalArray);
   return resBuildFile;
 }
 
@@ -241,6 +249,7 @@ async function buildCreditNoteFile(arrayLines) {
   let exentoProduc = "";
   let noOrdenCompra = "";
   let razonSocial = "";
+  let codProveedor = "";
   var m = new Date();
   var dateGen =
     m.getDate() +
@@ -269,6 +278,8 @@ async function buildCreditNoteFile(arrayLines) {
       head2 = "";
       noOrdenCompra = values[fStructure["TradePlacePos"]["head"]["head_numAsoci"]["pos"] - 1];
       razonSocial = values[fStructure["TradePlacePos"]["head"]["head_nomRaz"]["pos"] - 1];
+      codProveedor = values[fStructure["TradePlacePos"]["head"]["head_codProv"]["pos"] - 1];
+      //console.log("codProveedor:" + codProveedor)
       //contruir datos cabecera
       head = head.concat(noOrdenCompra).concat("|"); //1
       head = head.concat(values[fStructure["TradePlacePos"]["head"]["head_numSerie"]["pos"] - 1]).concat("|"); //2
@@ -325,9 +336,10 @@ async function buildCreditNoteFile(arrayLines) {
   var resBuildFile = new Object();
   resBuildFile.noOrdenCompra = noOrdenCompra;
   resBuildFile.razonSocial = razonSocial;
+  resBuildFile.codProveedor = codProveedor;
   resBuildFile.dateGen = dateGen;
   resBuildFile.finalArray = finalArray;
-  logger.info("resBuildFile.finalArray:" + resBuildFile.finalArray);
+  //logger.info("resBuildFile.finalArray:" + resBuildFile.finalArray);
   return resBuildFile;
 }
 
@@ -339,7 +351,7 @@ async function writeFileFtp(resBuildFile) {
 
   let buff = Buffer.from(resBuildFile.finalArray.join(""), "utf8");
 
-  let remote = "/data/" + resBuildFile.noOrdenCompra + resBuildFile.razonSocial + resBuildFile.dateGen + ".txt";
+  let remote = "/data/" + resBuildFile.codProveedor + "_" + resBuildFile.noOrdenCompra + resBuildFile.razonSocial + resBuildFile.dateGen + ".txt";
   return (
     sftp
       .connect(config)
@@ -357,6 +369,24 @@ async function writeFileFtp(resBuildFile) {
         return false;
       })
   );
+}
+
+async function searchSupplierFather(codProveedor, country) {
+  logger.info("**searchSupplierFather**");
+  try {
+    let binds = new Object();
+    binds.supplier = codProveedor;
+    let data = new Object();
+    data.country = country;
+    data.binds = binds;
+    let supplierFather = await bdUtils.search(SQL.SEARCH_SUPPLIER_FATHER, data);
+    return supplierFather.rows[0].SUPPLIER_PARENT;
+  } catch (err) {
+    logger.error("Error searchSupplierFather!");
+    logger.error(err);
+    let msj = "Error al consultar proveedor padre " + err
+    throw new Error(msj);
+  }
 }
 
 module.exports = {

@@ -7,9 +7,10 @@ const router = express.Router();
 router.post("/upload", async (req, res) => {
   logger.info("**upload**");
   let File = req.files.file;
+  let country = req.country;
   try {
     let response;
-    response = await handler.processFile(File);
+    response = await handler.processFile(File, country);
     //logger.info("Respuesta:", JSON.stringify(response));
     return res.status(200).send(response);
   } catch (e) {
