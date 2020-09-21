@@ -5,7 +5,7 @@ const dbConfigCo = enviroment.bdConfigCo;
 const dbConfigVe = enviroment.bdConfigVe;
 const sqlConstant = require("../config/sqlConstant");
 const SQL = sqlConstant.SQL;
-oracledb.initOracleClient({ libDir: "C:\\libOraclebd" });
+//oracledb.initOracleClient({ libDir: "C:\\libOraclebd" });
 //oracledb.initOracleClient({ libDir: "./instantclient" });
 
 const executeTest2 = async function () {
