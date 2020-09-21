@@ -374,13 +374,15 @@ async function writeFileFtp(resBuildFile) {
 async function searchSupplierFather(codProveedor, country) {
   logger.info("**searchSupplierFather**");
   try {
-    let binds = new Object();
-    binds.supplier = codProveedor;
+    /*let binds = new Object();
+    binds.supplier = codProveedor;*/
     let data = new Object();
-    data.country = country;
-    data.binds = binds;
-    let supplierFather = await bdUtils.search(SQL.SEARCH_SUPPLIER_FATHER, data);
-    return supplierFather.rows[0].SUPPLIER_PARENT;
+    data.supplier = codProveedor;
+    let supplierFather = await bdUtils.searchOne(SQL.SEARCH_SUPPLIER_FATHER.replace(/SCHEMA/g, SQL["SCHEMA"][country]), data, country);
+    if (!supplierFather.SUPPLIER_PARENT) {
+      throw new Error("Codigo de proveedor no existe")
+    }
+    return supplierFather.SUPPLIER_PARENT;
   } catch (err) {
     logger.error("Error searchSupplierFather!");
     logger.error(err);

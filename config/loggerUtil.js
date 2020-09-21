@@ -3,7 +3,7 @@ const winston = require("winston");
 const logger = winston.createLogger({
   level: "info",
   format: winston.format.combine(
-    winston.format.label({ label: "UploadFiles" }),
+    winston.format.label({ label: "api-suppliers" }),
     winston.format.timestamp(),
     winston.format.metadata({ fillExcept: ["message", "level", "timestamp", "label"] }),
     winston.format.colorize(),

@@ -1,11 +1,46 @@
 const SQL = {
-    INSERT_INVOICE_HEAD: "INSERT INTO INVOICEVE.INVOICE_HEAD " +
-        "(COUNTRY,ORDER_NO,INVOICE_NO,SUPPLIER,SUPPLIER_NAME,VENDOR_TYPE,STORE,LOCATION_TYPE,ORDER_DATE,RECEIVE_DATE,STATUS,TERMS,TOTAL_COST_ORDERED,TOTAL_COST_RECEIVED,TOTAL_COST_DISCOUNT,CURRENCY_CODE,APPT_NO,CLAIM_DETAIL,EXCHANGE_RATE,APPOINTMENT_DATE,DOC_TYPE,REF_VENDOR,PROCESSING_STATUS,DOC_ID,SRC_SYSTEM,PROCESSING_ERROR_DESC,QTY_DECISION,COST_DECISION,SERIE,BILL_NUMBER,CONTROL,TOTAL_QTY,DOC_DATE,DUE_DATE,TOTAL_TAX_AMOUNT,TERMS_DSCNT_PCT,TOTAL_COST_INC_TAX,DOC_TAX_DESC,CREATE_USER,CREATE_DATE,NOTE_CREDIT_NO,CONSIGNMENT,INVOICE_TYPE) VALUES " +
-        "(:country, :order_no, :invoice_no, :supplier, :supplier_name, :vendor_type, :store, :location_type, :order_date, :receive_date, :status, :terms, :total_cost_ordered, :total_cost_received, :total_cost_discount, :currency_code, :appt_no, :claim_detail, :exchange_rate, :appointment_date, :doc_type, :ref_vendor, :processing_status, :doc_id, :src_system, :processing_error_desc, :qty_decision, :cost_decision, :serie, :bill_number, :control, :total_qty, :doc_date, :due_date, :total_tax_amount, :terms_dscnt_pct, :total_cost_inc_tax, :doc_tax_desc, :create_user, :create_date, :note_credit_no, :consignment, :invoice_type)",
-    INSERT_INVOICE_DETAIL: "INSERT INTO INVOICEVE.INVOICE_DETAIL " +
+    SCHEMA: {
+        CO: "INVOICE",
+        VE: "INVOICE"
+    },
+    INSERT_INVOICE_HEAD:
+        "INSERT INTO SCHEMA.INVOICE_HEAD " +
+        "(COUNTRY,ORDER_NO,INVOICE_NO,SUPPLIER,SUPPLIER_NAME,VENDOR_TYPE,STORE,LOCATION_TYPE,ORDER_DATE,RECEIVE_DATE,STATUS,TOTAL_COST_ORDERED,TOTAL_COST_RECEIVED,TOTAL_COST_DISCOUNT,CURRENCY_CODE,EXCHANGE_RATE,DOC_TYPE,REF_VENDOR,PROCESSING_STATUS,DOC_ID,SRC_SYSTEM,TOTAL_QTY,DOC_DATE,DUE_DATE,TOTAL_TAX_AMOUNT,TOTAL_COST_INC_TAX,CREATE_USER,CREATE_DATE,NOTE_CREDIT_NO,CONSIGNMENT,INVOICE_TYPE) VALUES " +
+        "(:country, :order_no, :invoice_no, :supplier, :supplier_name, :vendor_type, :store, :location_type, :order_date, :receive_date, :status, :total_cost_ordered, :total_cost_received, :total_cost_discount, :currency_code, :exchange_rate, :doc_type, :ref_vendor, :processing_status, :doc_id, :src_system, :total_qty, :doc_date, :due_date, :total_tax_amount, :total_cost_inc_tax, :create_user, :create_date, :note_credit_no, :consignment, :invoice_type)",
+    INSERT_INVOICE_DETAIL:
+        "INSERT INTO SCHEMA.INVOICE_DETAIL " +
         "(COUNTRY,ORDER_NO,INVOICE_NO,ITEM,ITEM_DESCRIPTION,VAT_CODE,VAT_CODE_DESC,VAT_CODE_RATE,QTY_ORDERED,QTY_PACKAGE_ORDERED,QTY_RECEIVED,QTY_PACKAGE_RECEIVED,TOTAL_COST_PACKAGE,UNIT_COST,UNIT_COST_DISC_PERC,UNIT_COST_DISC_AMOUNT) VALUES " +
         "(:country, :order_no, :invoice_no, :item, :item_description, :vat_code, :vat_code_desc, :vat_code_rate, :qty_ordered, :qty_package_ordered, :qty_received, :qty_package_received, :total_cost_package, :unit_cost, :unit_cost_disc_perc, :unit_cost_disc_amount)",
-    SEARCH_SUPPLIER_FATHER: "SELECT SUPPLIER_PARENT FROM SUPS WHERE SUPPLIER = :supplier FETCH FIRST 1 ROWS ONLY"
+    SEARCH_SUPPLIER_FATHER:
+        "SELECT SUPPLIER_PARENT FROM SCHEMA.SUPS WHERE SUPPLIER = :supplier FETCH FIRST 1 ROWS ONLY",
+    GET_ORDER_DETAIL_BY_ID:
+        `SELECT NVL(ST.STORE_NAME, 'CENDIS') "storeName", NVL(ST.STORE, OL.LOCATION) "store", OH.CREATE_DATETIME "createDate", OH.NOT_BEFORE_DATE "notBeforeDate", OH.NOT_AFTER_DATE "notAfterDate", OH.STATUS "status", ` +
+        `OH.CURRENCY_CODE "currencyCode", OL.TOTAL_COST_ORDERED "totalCostOrdered", OL.COUNT_ITEMS "qtyItems", OL.QTY_ORDERED "qtyOrdered", SUPPLIER "supplier" ` +
+        `FROM SCHEMA.ORDHEAD OH ` +
+        `LEFT JOIN (SELECT OL2.ORDER_NO, OL2.LOCATION, SUM(OL2.UNIT_COST) TOTAL_COST_ORDERED, COUNT(OL2.ITEM) COUNT_ITEMS, SUM(OL2.LAST_ROUNDED_QTY) QTY_ORDERED ` +
+        `           FROM SCHEMA.ORDLOC OL2 ` +
+        `GROUP BY OL2.ORDER_NO, OL2.LOCATION) OL ON OH.ORDER_NO = OL.ORDER_NO ` +
+        `LEFT JOIN SCHEMA.STORE ST ON OL.LOCATION = ST.STORE ` +
+        `WHERE OH.ORDER_NO = :orderNo`,
+    GET_INVOICE_BY_ORDER_NO:
+        `SELECT IH.INVOICE_NO "invoiceNo", IH.CURRENCY_CODE "currencyCode", NVL(IH.TOTAL_QTY, 0) "totalQty", IH.TOTAL_COST_RECEIVED "totalCostReceived", IH.TOTAL_TAX_AMOUNT "totalTaxAmount", IH.DOC_DATE "docDate", ` +
+        `SUBSTR(IH.STATUS, 4) "status", IH.INVOICE_TYPE "invoiceType", NVL2(IH.DOC_ID, 'FILE', 'PORTAL') "docId" ` +
+        `FROM SCHEMA.INVOICE_HEAD IH WHERE IH.ORDER_NO = :orderNo`,
+    GET_ITEMS_BY_INVOICE:
+        `SELECT ITEM "item", VAT_CODE_RATE "vatRate", QTY_RECEIVED "qtyRecieve", UNIT_COST "unitCost", ITEM_DESCRIPTION "description" ` +
+        `FROM SCHEMA.INVOICE_DETAIL ` +
+        `WHERE ORDER_NO = :orderNo AND INVOICE_NO = :invoiceNo `,
+    GET_ITEMS_BY_ORDER:
+        `SELECT OL.ITEM "item", OL.UNIT_COST "unitCost", OL.QTY_ORDERED "qtyOrdered", OL.LAST_ROUNDED_QTY "qtyRecieve", IM.SHORT_DESC "description", VI.VAT_RATE "vatRate" ` +
+        `FROM SCHEMA.ORDLOC OL ` +
+        `INNER JOIN (SELECT * FROM SCHEMA.ITEM_SUPPLIER WHERE SUPPLIER IN (SELECT SUPS.SUPPLIER FROM SCHEMA.SUPS WHERE (SUPS.SUPPLIER = :supplier OR SUPS.SUPPLIER_PARENT = :supplier))) ISU ON OL.ITEM = ISU.ITEM ` +
+        `LEFT JOIN SCHEMA.ITEM_MASTER IM ON ISU.ITEM = IM.ITEM ` +
+        `LEFT JOIN (SELECT VI1.ITEM, VI1.VAT_REGION, VI1.VAT_TYPE, VI1.VAT_CODE, VI1.VAT_RATE FROM SCHEMA.VAT_ITEM VI1 ` +
+        `INNER JOIN (SELECT DISTINCT (ITEM) ITEM, MAX(CREATE_DATETIME) CREATE_DATETIME FROM SCHEMA.VAT_ITEM GROUP BY ITEM) VI2 ` +
+        `ON VI1.ITEM = VI2.ITEM AND VI1.CREATE_DATETIME = VI2.CREATE_DATETIME) VI ON IM.ITEM = VI.ITEM ` +
+        `WHERE OL.ORDER_NO = :orderNo`,
+
+
 
 }
 

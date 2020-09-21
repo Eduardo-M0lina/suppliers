@@ -141,7 +141,7 @@ const insert = async function (sql, data) {
   }
 };
 
-const insertInvoice = async function (data) {
+const insertInvoice = async function (data, country) {
   logger.info("**insertInvoice**");
   //console.log((data));
   let connection;
@@ -149,13 +149,13 @@ const insertInvoice = async function (data) {
   try {
     let options, result, dbConfig;
     logger.info("**connection**");
-    dbConfig = data.country == "CO" ? dbConfigCo : dbConfigVe;
+    dbConfig = country == "CO" ? dbConfigCo : dbConfigVe;
     connection = await oracledb.getConnection(dbConfig);
     logger.info("**execute head**");
-    await connection.execute(SQL.INSERT_INVOICE_HEAD, data.head);
+    await connection.execute(SQL.INSERT_INVOICE_HEAD.replace(/SCHEMA/g, SQL["SCHEMA"][country]), data.head);
     logger.info("**execute detail**");
     for await (const detalle of data.det) {
-      await connection.execute(SQL.INSERT_INVOICE_DETAIL, detalle);
+      await connection.execute(SQL.INSERT_INVOICE_DETAIL.replace(/SCHEMA/g, SQL["SCHEMA"][country]), detalle);
     }
     logger.info("**commit**");
     await connection.commit();
@@ -176,25 +176,37 @@ const insertInvoice = async function (data) {
   }
 };
 
-const search = async function (sql, data) {
+const searchList = async function (sql, data, country) {
+  return search(sql, data, country, true);
+}
+
+const searchOne = async function (sql, data, country) {
+  return search(sql, data, country, false);
+}
+
+const search = async function (sql, data, country, isList) {
   logger.info("**search**");
-  //console.log((data));
+  logger.info("data:" + JSON.stringify(data));
+  //logger.info("country:" + JSON.stringify(country));
+  logger.info("sql:" + sql);
   let connection;
 
   try {
     let options, result, dbConfig;
     logger.info("**connection**");
-    dbConfig = data.country == "CO" ? dbConfigCo : dbConfigVe;
+    dbConfig = country == "CO" ? dbConfigCo : dbConfigVe;
     connection = await oracledb.getConnection(dbConfig);
     options = {
       outFormat: oracledb.OUT_FORMAT_OBJECT // query result format
     };
-    logger.info("sql:" + sql);
     logger.info("**execute SQL**");
-    result = await connection.execute(sql, data.binds, options);
+    result = await connection.execute(sql, data, options);
     logger.info("**result**");
     logger.info(JSON.stringify(result));
-    return result;
+    if (isList) {
+      return result.rows;
+    }
+    return result.rows[0];
   } catch (err) {
     logger.error(err);
     throw new Error(err.message)
@@ -215,5 +227,6 @@ module.exports = {
   insert,
   insertInvoice,
   insertPrueba,
-  search
+  searchList,
+  searchOne
 };

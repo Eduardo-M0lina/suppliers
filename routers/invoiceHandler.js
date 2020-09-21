@@ -4,15 +4,12 @@ const sqlConstant = require("../config/sqlConstant");
 var moment = require('moment');
 const SQL = sqlConstant.SQL;
 
-const insertInvoice = async function (data) {
+const insertInvoice = async function (data, country) {
     logger.info("**insertInvoice**");
     var res = new Object();
     try {
-        if (!data.country) {
-            throw new Error("The country variable doesn't exist")
-        }
         data.head.order_date = new Date(data.head.order_date);
-        if (await bdUtils.insertInvoice(data)) {
+        if (await bdUtils.insertInvoice(data, country)) {
             res.status = true;
             res.message = "Factura guardada!";
         } else {

@@ -9,11 +9,15 @@ router.get("/testBD", async (req, res) => {
     logger.info("**testBD**");
     try {
         let response;
+        let country = req.headers.country;
+        if (!country) {
+            throw new Error("The country variable doesn't exist")
+        }
         response = await bdUtils.execute2();
         logger.info("Respuesta:", JSON.stringify(response));
         return res.status(200).send(response);
     } catch (e) {
-        logger.error("upload Error:" + e.message);
+        logger.error("invoiceService Error:" + e.message);
         return res.status(500).send({ status: false, message: e.message });
     }
 });
@@ -23,13 +27,16 @@ router.post("/insertInvoice", async (req, res) => {
     logger.info("**insertInvoice**");
     try {
         let response;
-        var data = req.body;
-        //logger.info("data:" + JSON.stringify(data.head));
-        response = await handler.insertInvoice(data);
+        let country = req.headers.country;
+        if (!country) {
+            throw new Error("The country variable doesn't exist")
+        }
+        let data = req.body;
+        response = await handler.insertInvoice(data, country);
         logger.info("Respuesta:", JSON.stringify(response));
         return res.status(200).send(response);
     } catch (e) {
-        logger.error("upload Error:" + e.message);
+        logger.error("invoiceService Error:" + e.message);
         return res.status(500).send({ status: false, message: e.message });
     }
 });

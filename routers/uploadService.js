@@ -7,8 +7,11 @@ const router = express.Router();
 router.post("/upload", async (req, res) => {
   logger.info("**upload**");
   let File = req.files.file;
-  let country = req.country;
   try {
+    let country = req.headers.country;
+    if (!country) {
+      throw new Error("The country variable doesn't exist")
+    }
     let response;
     response = await handler.processFile(File, country);
     //logger.info("Respuesta:", JSON.stringify(response));

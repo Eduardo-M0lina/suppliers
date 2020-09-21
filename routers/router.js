@@ -4,6 +4,7 @@ const router = express.Router();
 
 const uploadRouter = require("./uploadService");
 const invoiceService = require("./invoiceService");
+const suppliersService = require("./suppliersService");
 
 router.use((req, res, next) => {
   logger.info(`Called:  ${req.path}`);
@@ -14,5 +15,6 @@ router.use((req, res, next) => {
 
 router.use(uploadRouter);
 router.use(invoiceService);
+router.use(suppliersService);
 
 module.exports = router;
