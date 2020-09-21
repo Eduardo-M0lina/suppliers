@@ -40,6 +40,33 @@ const getOrderDetail = async function (data, country) {
     }
 }
 
+const ordersBySupplier = async function (data, country) {
+    logger.info("**ordersBySupplier**");
+    var res = new Object();
+    try {
+        let req = new Object();
+        req.supplier = Number(data.supplier);
+        let supplier = await bdUtils.searchOne(SQL.GET_SUPPLIER_BY_PARENT.replace(/SCHEMA/g, SQL["SCHEMA"][country]), req, country);
+        if (!supplier) {
+            throw new Error("Proveedor no existe")
+        }
+        //logger.info("detail_order:"+JSON.stringify(detail_order));
+        conditional = data.supplier != data.supplierFather ? "AND" : "OR";
+        let orders = await bdUtils.searchList(SQL.GET_ORDERS_BY_SUPPLIER.replace(/SCHEMA/g, SQL["SCHEMA"][country]).replace(/CONDITIONAL/g, conditional), data, country);
+        supplier.orders = orders;
+        //response
+        res.status = true;
+        res.message = "OK";
+        res.data = supplier
+        return res;
+    } catch (err) {
+        logger.error("Error ordersBySupplier!");
+        logger.error(err);
+        throw new Error(err);
+    }
+}
+
 module.exports = {
     getOrderDetail,
+    ordersBySupplier
 };

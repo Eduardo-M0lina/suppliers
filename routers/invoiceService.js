@@ -14,7 +14,7 @@ router.get("/testBD", async (req, res) => {
             throw new Error("The country variable doesn't exist")
         }
         response = await bdUtils.execute2();
-        logger.info("Respuesta:", JSON.stringify(response));
+        //logger.info("Respuesta:" + JSON.stringify(response));
         return res.status(200).send(response);
     } catch (e) {
         logger.error("invoiceService Error:" + e.message);
@@ -33,7 +33,7 @@ router.post("/insertInvoice", async (req, res) => {
         }
         let data = req.body;
         response = await handler.insertInvoice(data, country);
-        logger.info("Respuesta:", JSON.stringify(response));
+        //logger.info("Respuesta:" + JSON.stringify(response));
         return res.status(200).send(response);
     } catch (e) {
         logger.error("invoiceService Error:" + e.message);

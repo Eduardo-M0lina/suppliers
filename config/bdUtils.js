@@ -186,9 +186,9 @@ const searchOne = async function (sql, data, country) {
 
 const search = async function (sql, data, country, isList) {
   logger.info("**search**");
-  logger.info("data:" + JSON.stringify(data));
+  //logger.info("data:" + JSON.stringify(data));
   //logger.info("country:" + JSON.stringify(country));
-  logger.info("sql:" + sql);
+  //logger.info("sql:" + sql);
   let connection;
 
   try {
@@ -202,7 +202,7 @@ const search = async function (sql, data, country, isList) {
     logger.info("**execute SQL**");
     result = await connection.execute(sql, data, options);
     logger.info("**result**");
-    logger.info(JSON.stringify(result));
+    //logger.info(JSON.stringify(result));
     if (isList) {
       return result.rows;
     }

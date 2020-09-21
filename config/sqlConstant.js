@@ -39,8 +39,20 @@ const SQL = {
         `INNER JOIN (SELECT DISTINCT (ITEM) ITEM, MAX(CREATE_DATETIME) CREATE_DATETIME FROM SCHEMA.VAT_ITEM GROUP BY ITEM) VI2 ` +
         `ON VI1.ITEM = VI2.ITEM AND VI1.CREATE_DATETIME = VI2.CREATE_DATETIME) VI ON IM.ITEM = VI.ITEM ` +
         `WHERE OL.ORDER_NO = :orderNo`,
-
-
+    GET_SUPPLIER_BY_PARENT:
+        `SELECT SUPPLIER_PARENT "supplierParent", SUBSTR(comment_desc, 10) "comment",  sup_name "name", SUPPLIER "supplier" ` +
+        `FROM SCHEMA.SUPS  WHERE SUPPLIER = :supplier`,
+    GET_ORDERS_BY_SUPPLIER:
+        `SELECT * FROM (SELECT oh.ORDER_NO "order", oh.status "status", COUNT(sh.ORDER_NO) "shipped", COUNT(ol.item) as CANTIDAD, oh.Create_Datetime "createDate", sh.RECEIVE_DATE "receiveDate", ` +
+        `oh.supplier "supplier", NVL(st.STORE, ol.LOCATION) "store", NVL(st.store_name, 'CENDIS') "store_name", CASE WHEN (COUNT(sh.ORDER_NO) = 0 AND oh.STATUS = 'C') THEN 'N' ELSE 'Y' END ACTIVE ` +
+        `FROM SCHEMA.ordhead oh ` +
+        `LEFT JOIN SCHEMA.ordloc ol ON ol.order_no = oh.order_no ` +
+        `LEFT JOIN SCHEMA.sups s  ON s.supplier = oh.supplier ` +
+        `LEFT JOIN SCHEMA.shipment sh  ON sh.order_no = oh.order_No ` +
+        `LEFT JOIN SCHEMA.store st  ON ol.location = st.store ` +
+        `WHERE s.supplier_parent = :supplierFather  AND s.supplier = :supplier ` +
+        `GROUP BY oh.ORDER_NO, oh.status, oh.supplier, oh.Create_Datetime, sh.RECEIVE_DATE, NVL(st.STORE, ol.LOCATION),  NVL(st.store_name, 'CENDIS')) ` +
+        `WHERE CANTIDAD > 0 CONDITIONAL ACTIVE != 'N'`,
 
 }
 

@@ -14,7 +14,7 @@ router.post("/upload", async (req, res) => {
     }
     let response;
     response = await handler.processFile(File, country);
-    //logger.info("Respuesta:", JSON.stringify(response));
+    //logger.info("Respuesta:" + JSON.stringify(response));
     return res.status(200).send(response);
   } catch (e) {
     logger.error("upload Error:" + e.message);
