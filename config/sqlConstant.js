@@ -1,6 +1,6 @@
 const SQL = {
     SCHEMA: {
-        CO: "INVOICE",
+        CO: "INVOICEVE",
         VE: "INVOICE"
     },
     INSERT_INVOICE_HEAD:
