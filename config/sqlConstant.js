@@ -1,7 +1,7 @@
 const SQL = {
     SCHEMA: {
-        CO: "INVOICEVE",
-        VE: "INVOICE"
+        CO: "INVOICE",
+        VE: "INVOICEVE"
     },
     INSERT_INVOICE_HEAD:
         "INSERT INTO SCHEMA.INVOICE_HEAD " +
