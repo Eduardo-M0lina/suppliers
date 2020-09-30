@@ -50,9 +50,9 @@ const SQL = {
         `LEFT JOIN SCHEMA.sups s  ON s.supplier = oh.supplier ` +
         `LEFT JOIN SCHEMA.shipment sh  ON sh.order_no = oh.order_No ` +
         `LEFT JOIN SCHEMA.store st  ON ol.location = st.store ` +
-        `WHERE s.supplier_parent = :supplierFather  AND s.supplier = :supplier ` +
+        `WHERE s.supplier_parent = :supplierFather  CONDITIONAL s.supplier = :supplier ` +
         `GROUP BY oh.ORDER_NO, oh.status, oh.supplier, oh.Create_Datetime, sh.RECEIVE_DATE, NVL(st.STORE, ol.LOCATION),  NVL(st.store_name, 'CENDIS')) ` +
-        `WHERE CANTIDAD > 0 CONDITIONAL ACTIVE != 'N'`,
+        `WHERE CANTIDAD > 0 AND ACTIVE != 'N'`,
 
 }
 
