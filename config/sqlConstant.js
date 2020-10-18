@@ -37,7 +37,7 @@ const SQL = {
         `LEFT JOIN SCHEMA.ITEM_MASTER IM ON ISU.ITEM = IM.ITEM ` +
         `LEFT JOIN (SELECT VI1.ITEM, VI1.VAT_REGION, VI1.VAT_TYPE, VI1.VAT_CODE, VI1.VAT_RATE FROM SCHEMA.VAT_ITEM VI1 ` +
         `INNER JOIN (SELECT DISTINCT (ITEM) ITEM, MAX(CREATE_DATETIME) CREATE_DATETIME FROM SCHEMA.VAT_ITEM GROUP BY ITEM) VI2 ` +
-        `ON VI1.ITEM = VI2.ITEM AND VI1.CREATE_DATETIME = VI2.CREATE_DATETIME) VI ON IM.ITEM = VI.ITEM ` +
+        `ON VI1.ITEM = VI2.ITEM AND VI1.CREATE_DATETIME = VI2.CREATE_DATETIME where vi1.active_date = (SELECT MAX(a.active_date) FROM vat_item a WHERE a.item = vi1.item)) VI ON IM.ITEM = VI.ITEM ` +
         `WHERE OL.ORDER_NO = :orderNo`,
     GET_SUPPLIER_BY_PARENT:
         `SELECT SUPPLIER_PARENT "supplierParent", SUBSTR(comment_desc, 10) "comment",  sup_name "name", SUPPLIER "supplier" ` +
@@ -52,7 +52,8 @@ const SQL = {
         `LEFT JOIN SCHEMA.store st  ON ol.location = st.store ` +
         `WHERE s.supplier_parent = :supplierFather  CONDITIONAL s.supplier = :supplier ` +
         `GROUP BY oh.ORDER_NO, oh.status, oh.supplier, oh.Create_Datetime, sh.RECEIVE_DATE, NVL(st.STORE, ol.LOCATION),  NVL(st.store_name, 'CENDIS')) ` +
-        `WHERE CANTIDAD > 0 AND ACTIVE != 'N'`,
+        `WHERE CANTIDAD > 0 `+
+        `AND oh.status = 'C' AND EXISTS (SELECT s.order_no FROM SCHEMA.shipment s WHERE s.order_no = :orderNo)`,
 
 }
 

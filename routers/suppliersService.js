@@ -24,8 +24,8 @@ router.get("/orders/:orderNo", async (req, res) => {
     }
 });
 
-router.get("/orders/supplier/:supplier/supplierFather/:supplierFather", async (req, res) => {
-    logger.info("**/orders/supplier/:supplier/supplierFather/:supplierFather**");
+router.get("/orders/supplier/:supplier/supplierFather/:supplierFather/orderNo/:orderNo", async (req, res) => {
+    logger.info("**/orders/supplier/:supplier/supplierFather/:supplierFather/orderNo/:orderNo**");
     try {
         let response;
         let country = req.headers.country;
@@ -35,6 +35,7 @@ router.get("/orders/supplier/:supplier/supplierFather/:supplierFather", async (r
         let data = new Object();
         data.supplier = Number(req.params.supplier);
         data.supplierFather = Number(req.params.supplierFather);
+        data.orderNo = Number(req.params.orderNo);
         response = await handler.ordersBySupplier(data, country);
         //logger.info("Respuesta:" + JSON.stringify(response));
         return res.status(200).send(response);
